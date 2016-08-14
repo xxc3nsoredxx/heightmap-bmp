@@ -6,7 +6,7 @@ typedef struct bmp_h {
     int size; // Size of BMP file - 4 bytes
     int unused1; // Unused - 2 bytes
     int unused2; // Unused - 2 bytes
-    int array_offset; // Offset for pixel array () - 4 bytes
+    int array_offset; // Offset for pixel array (54) - 4 bytes
 } bmp_h; // 14 bytes
 
 typedef struct dib_h {
@@ -36,5 +36,9 @@ typedef struct bmp_file {
 } bmp_file;
 
 bmp_h create_bmp_header (FILE *);
+dib_h create_dib_header ();
+pixel** create_pixel_array (int, int);
+
+void normal (int *);
 
 #endif
