@@ -18,15 +18,20 @@ int main (int argc, char **argv) {
         return -1;
     }
 
-    FILE *output = fopen (output_name, "w");
+    FILE *output = fopen (output_name, "wb");
     if (!output) {
         printf ("Unable to Open File -- %s\n", output_name);
         fclose (input);
         return -1;
     }
 
-    bmp_h bmp_header = create_bmp_header (input);
-    dib_h dib_header = create_dib_header ();
+    bmp_h bmp_header = create_bmp_header ();
+    dib_h dib_header = create_dib_header (input);
+
+    int size = dib_header.array_size;
+    flip_endian (&size);
+    size += 54;
+    bmp_header.size = size;
 
     printf ("\nBMP Header:\n");
     printf ("ID: 0x%02X %02X\n", ((bmp_header.id >> 8) & 0xFF), (bmp_header.id & 0xFF));
@@ -35,7 +40,7 @@ int main (int argc, char **argv) {
     int s2 = (sn >> 16) & 0xFF;
     int s3 = (sn >> 8) & 0xFF;
     int s4 = sn & 0xFF;
-    normal (&sn);
+    flip_endian (&sn);
     printf ("Size: 0x%02X %02X %02X %02X (%d bytes)\n", s1, s2, s3, s4, sn);
     printf ("Unused: 0x%02X %02X\n", ((bmp_header.unused1 >> 8) & 0xFF), (bmp_header.unused1 & 0xFF));
     printf ("Unused: 0x%02X %02X\n", ((bmp_header.unused2 >> 8) & 0xFF), (bmp_header.unused2 & 0xFF));
@@ -44,7 +49,7 @@ int main (int argc, char **argv) {
     int ao2 = (aon >> 16) & 0xFF;
     int ao3 = (aon >> 8) & 0xFF;
     int ao4 = aon & 0xFF;
-    normal (&aon);
+    flip_endian (&aon);
     printf ("Array Offset: 0x%02X %02X %02X %02X (%d bytes)\n", ao1, ao2, ao3, ao4, aon);
 
     printf ("\nDIB Header:\n");
@@ -53,21 +58,21 @@ int main (int argc, char **argv) {
     int ds2 = (dsn >> 16) & 0xFF;
     int ds3 = (dsn >> 8) & 0xFF;
     int ds4 = dsn & 0xFF;
-    normal (&dsn);
+    flip_endian (&dsn);
     printf ("DIB Size: 0x%02X %02X %02X %02X (%d bytes)\n", ds1, ds2, ds3, ds4, dsn);
     int wn = dib_header.width;
     int w1 = (wn >> 24) & 0xFF;
     int w2 = (wn >> 16) & 0xFF;
     int w3 = (wn >> 8) & 0xFF;
     int w4 = wn & 0xFF;
-    normal (&wn);
+    flip_endian (&wn);
     printf ("BMP Width: 0x%02X %02X %02X %02X (%d pixels)\n", w1, w2, w3, w4, wn);
     int hn = dib_header.height;
     int h1 = (hn >> 24) & 0xFF;
     int h2 = (hn >> 16) & 0xFF;
     int h3 = (hn >> 8) & 0xFF;
     int h4 = hn & 0xFF;
-    normal (&hn);
+    flip_endian (&hn);
     printf ("BMP Height: 0x%02X %02X %02X %02X (%d pixels)\n", h1, h2, h3, h4, hn);
     int p1 = (dib_header.planes >> 8) & 0xFF;
     int p2 = dib_header.planes & 0xFF;
@@ -85,28 +90,28 @@ int main (int argc, char **argv) {
     int as2 = (asn >> 16) & 0xFF;
     int as3 = (asn >> 8) & 0xFF;
     int as4 = asn & 0xFF;
-    normal (&asn);
+    flip_endian (&asn);
     printf ("Pixel Data: 0x%02X %02X %02X %02X (%d bytes)\n", as1, as2, as3, as4, asn);
     int ppmhn = dib_header.ppm_h;
     int ppmh1 = (ppmhn >> 24) & 0xFF;
     int ppmh2 = (ppmhn >> 16) & 0xFF;
     int ppmh3 = (ppmhn >> 8) & 0xFF;
     int ppmh4 = ppmhn & 0xFF;
-    normal (&ppmhn);
+    flip_endian (&ppmhn);
     printf ("Pixels/Meter Horizontal: 0x%02X %02X %02X %02X (%d ppm)\n", ppmh1, ppmh2, ppmh3, ppmh4, ppmhn);
     int ppmvn = dib_header.ppm_v;
     int ppmv1 = (ppmvn >> 24) & 0xFF;
     int ppmv2 = (ppmvn >> 16) & 0xFF;
     int ppmv3 = (ppmvn >> 8) & 0xFF;
     int ppmv4 = ppmvn & 0xFF;
-    normal (&ppmvn);
+    flip_endian (&ppmvn);
     printf ("Pixels/Meter Vertical: 0x%02X %02X %02X %02X (%d ppm)\n", ppmv1, ppmv2, ppmv3, ppmv4, ppmvn);
     int cipn = dib_header.colors_in_palette;
     int cip1 = (cipn >> 24) & 0xFF;
     int cip2 = (cipn >> 16) & 0xFF;
     int cip3 = (cipn >> 8) & 0xFF;
     int cip4 = cipn & 0xFF;
-    normal (&cipn);
+    flip_endian (&cipn);
     printf ("Colors in Palette: 0x%02X %02X %02X %02X (%d colors)\n", cip1, cip2, cip3, cip4, cipn);
     int icn = dib_header.important_colors;
     int ic1 = (icn >> 24) & 0xFF;
@@ -115,15 +120,16 @@ int main (int argc, char **argv) {
     int ic4 = icn & 0xFF;
     printf ("Important Colors: 0x%02X %02X %02X %02X (%d colors)\n", ic1, ic2, ic3, ic4, icn);
 
-    pixel **pixel_array = create_pixel_array (wn, hn);
-
-    // -----TEMP-----
-
-    pixel temp = *(*(pixel_array + 1) + 0);
-    printf ("RGB_1,0 (%d, %d, %d)", temp.red, temp.green, temp.blue);
+    pixel **pixel_array = create_pixel_array (input, wn, hn);
     
-    // -----TEMP-----
-    
+    bmp_file output_data = {
+        bmp_header,
+        dib_header,
+        pixel_array
+    };
+
+    write_data (output, output_data);
+
     fclose (input);
     fclose (output);
 
