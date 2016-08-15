@@ -31,6 +31,7 @@ int main (int argc, char **argv) {
     int size = dib_header.array_size;
     flip_endian (&size);
     size += 54;
+    flip_endian (&size);
     bmp_header.size = size;
 
     printf ("\nBMP Header:\n");

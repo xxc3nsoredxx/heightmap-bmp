@@ -25,6 +25,11 @@ dib_h create_dib_header (FILE *input) {
     int pads = ((cols * 3) % 4) * rows;
     int data_size = (rows * cols * 3) + pads;
 
+    fscanf (input, "%*s %*s");
+    fscanf (input, "%*s %*s");
+    fscanf (input, "%*s %*s");
+    fscanf (input, "%*s %*s");
+
     ret.size_dib_h = 0x28000000 & 0xFFFFFFFF;
 
     flip_endian (&cols);
@@ -63,26 +68,24 @@ pixel** create_pixel_array (FILE *input, int width, int height) {
         *(ret + row) = malloc (width * sizeof (pixel));
     }
 
+    char *val_str = malloc (100);
     double val = 0;
     int r = 0, g = 0, b = 0;
 
     for (int row = 0; row < height; row++) {
         for (int col = 0; col < width; col++) {
-            fscanf (input, "%f", &val);
+            fscanf (input, "%s", val_str);
+            sscanf (val_str, "%lf", &val);
+            printf ("VAL_1: %f ", val);
             val_to_rgb (val, &r, &g, &b);
+            printf ("RGB: %d %d %d\n", r, g, b);
+            (*(ret + row) + col) -> red = r;
+            (*(ret + row) + col) -> green = g;
+            (*(ret + row) + col) -> blue = b;
         }
     }
 
-    // -----TEMP-----
-    
-    (*(*(ret + 1) + 0)).red = 255;
-    (*(*(ret + 1) + 1)).red = 255;
-    (*(*(ret + 1) + 1)).green = 255;
-    (*(*(ret + 1) + 1)).blue = 255;
-    (*(*(ret + 0) + 0)).blue = 255;
-    (*(*(ret + 0) + 1)).green = 255;
-
-    // -----TEMP-----
+    free (val_str);
 
     return ret;
 }
@@ -124,6 +127,7 @@ void flip_endian (int *val) {
 
 void val_to_rgb (double val, int *r, int *g, int *b) {
     val = 1 - val;
+    printf ("VAL_2: %f ", val);
 
     if (val >= 0 && val <= 0.200) {
         *r = 255;
