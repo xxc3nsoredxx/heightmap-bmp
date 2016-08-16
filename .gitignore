@@ -34,3 +34,6 @@
 
 # VIM
 *.swp
+
+# Python things
+__pycache__/
