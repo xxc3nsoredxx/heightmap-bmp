@@ -139,5 +139,7 @@ int main (int argc, char **argv) {
     }
     free (pixel_array);
 
+    //system ("echo END");
+
     return 0;
 }

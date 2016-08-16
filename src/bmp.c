@@ -76,9 +76,7 @@ pixel** create_pixel_array (FILE *input, int width, int height) {
         for (int col = 0; col < width; col++) {
             fscanf (input, "%s", val_str);
             sscanf (val_str, "%lf", &val);
-            printf ("VAL_1: %f ", val);
             val_to_rgb (val, &r, &g, &b);
-            printf ("RGB: %d %d %d\n", r, g, b);
             (*(ret + row) + col) -> red = r;
             (*(ret + row) + col) -> green = g;
             (*(ret + row) + col) -> blue = b;
@@ -127,7 +125,6 @@ void flip_endian (int *val) {
 
 void val_to_rgb (double val, int *r, int *g, int *b) {
     val = 1 - val;
-    printf ("VAL_2: %f ", val);
 
     if (val >= 0 && val <= 0.200) {
         *r = 255;
